@@ -5,12 +5,6 @@ import sys
 from blast_parser import *
 
 
-def read_blast(blast, filt, pp):
-    f = open(blast)
-    for l in f.xreadlines():
-        if not l.startswith('#') and filt(l):
-            pp(l)
-
 def all_uniq_subjects(blast):
     subjects = set()
     subj_field = BlastFields.index('Subject id')

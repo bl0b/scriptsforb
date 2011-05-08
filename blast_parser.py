@@ -24,4 +24,10 @@ def extract_blast_fields(line, *fields):
     return ret
 
 
+def read_blast(blast, filt, pp):
+    f = open(blast)
+    for l in f.xreadlines():
+        if not l.startswith('#') and filt(l):
+            pp(l)
+
 
