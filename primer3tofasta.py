@@ -91,8 +91,8 @@ def primer3_parse(f):
 
 
 
-def primer_to_fasta(num, lr, pfields):
-    return '>%i %s %i\n%s\n'%(num, lr, pfields['start'], pfields['seq'])
+def primer_to_fasta(p, lr, pfields):
+    return '>%i %s %i | product size: %s, pair any compl.: %s, pair 3\' compl.: %s\n%s\n'%(p.num, lr, pfields['start'], p.product_size, p.pair_any_compl, p.pair_3_compl, pfields['seq'])
 
 
 
@@ -100,5 +100,5 @@ if __name__=='__main__':
     for inputfile in sys.argv[1:]:
         inputfile = sys.argv[1]
         test = primer3_parse(inputfile)
-        print >> open(inputfile+'.fasta', 'w'), '\n'.join(map(lambda p: primer_to_fasta(p.num, 'left', p.left)+primer_to_fasta(p.num, 'right', p.right), test))
+        print >> open(inputfile+'.fasta', 'w'), '\n'.join(map(lambda p: primer_to_fasta(p, 'left', p.left)+primer_to_fasta(p, 'right', p.right), test))
 
