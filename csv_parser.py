@@ -11,7 +11,7 @@ class Csv(object):
                 return tuple.__getitem__(self, x)
     def __init__(self, filename, sep='\t'):
         f = open(filename)
-        data = [ Csv.Row(l.split(sep)) for l in f.xreadlines() ]
+        data = [ Csv.Row(l.strip().split(sep)) for l in f.xreadlines() ]
         self.headers = Csv.Row((x.strip() for x in data[0]))
         self.data = data[1:]
     def make_index(self, columns, payload=None, blacklist=set()):
