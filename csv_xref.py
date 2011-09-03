@@ -13,6 +13,7 @@ def getopts(args):
     parser.add_option("--rk", "--refkey", dest="refkey", help="columns indices that define the cross-referencing key (reference-side)", default=None)
     parser.add_option("--rc", "--refcol", dest="refcol", help="columns indices in reference file that should be appended to rows of the input file", default=None)
     parser.add_option("--ik", "--inputkey", dest="inkey", help="columns indices that define the cross-referencing key (input-side, defaults to refkey)", default=None)
+    parser.add_option("-u", "--uniq", dest="uniq", action="store_true", help="only output the unique cross-referenced payload entries", default=False)
     (options, args) = parser.parse_args(args)
 
     fail = False
@@ -47,35 +48,55 @@ def getopts(args):
     return options, args
 
 
+def xref_init(I, R, payload):
+    return [ '\t'.join(I.headers+R.headers[payload]) ]
 
-def do_xref(ref, inp, outp, refk, ink, payload):
+def xref_add(xref, row, payload=Csv.Row([])):
+    xref.append('\t'.join(row+payload).strip())
+
+def uniq_init(I, R, payload):
+    return set()
+
+def uniq_add(xref, row, payload=Csv.Row([])):
+    xref.add('\t'.join(payload))
+
+def do_xref(ref, inp, outp, refk, ink, payload, uniq):
     R = Csv(ref)
     I = Csv(inp)
-    out = file(outp, 'w')
+    out = outp=='stdout' and sys.stdout or file(outp, 'w')
     blacklist = set(['seg', 'signal-peptide'])
     ridx = R.make_index(refk, payload, blacklist)
     print "Using (%s) as cross-referencing key"%(','.join(R.headers[refk]))
-    xref = [ '\t'.join(I.headers+R.headers[payload]) ]
+    if uniq:
+        xref = uniq_init(I, R, payload)
+        add = uniq_add
+    else:
+        xref = xref_init(I, R, payload)
+        add = xref_add
+        #xref = [ '\t'.join(I.headers+R.headers[payload]) ]
     nomatch=set()
     for row in I.data:
         key = row[ink]
         if len(blacklist.intersection(key))>0 or key in nomatch:
-            xref.append('\t'.join(row).strip())
+            add(xref, row)
+            #xref.append('\t'.join(row).strip())
             continue
         if key not in ridx:
             print "No match for (%s)"%(','.join(key))
             nomatch.add(key)
-            xref.append('\t'.join(row).strip())
+            add(xref, row)
+            #xref.append('\t'.join(row).strip())
             continue
         matches = ridx[row[ink]]
         print len(matches), "match(es)"
         for m in matches:
-            xref.append('\t'.join(row+m[payload]).strip())
+            add(xref, row, m[payload])
+            #xref.append('\t'.join(row+m[payload]).strip())
     for x in xref:
         print >> out, x
     
 
 if __name__=='__main__':
     options, args = getopts(sys.argv[1:])
-    do_xref(options.ref, options.inp, options.outp, options.refkey, options.inkey, options.refcol)
+    do_xref(options.ref, options.inp, options.outp, options.refkey, options.inkey, options.refcol, options.uniq)
 
