@@ -6,10 +6,10 @@ import sys
 
 def getopts(args):
     parser = OptionParser()
-    parser.add_option("-i", "--input", dest="inp", help="a file that you want cross-referenced", default=None)
-    parser.add_option("-o", "--output", dest="outp", help="the name of the output file (will default to input+'.xref'", default=None)
-    parser.add_option("-s", "--start", dest="slen", help="columns indices that define the cross-referencing key (input-side, defaults to refkey)", default=None)
-    parser.add_option("-e", "--end", dest="elen", help="only output the unique cross-referenced payload entries", default=None)
+    parser.add_option("-i", "--input", dest="inp", help="the name of the input file", default=None)
+    parser.add_option("-o", "--output", dest="outp", help="the name of the output file", default=None)
+    parser.add_option("-s", "--start", dest="slen", help="count of characters to keep from left (start) of header string (initial '>' not included)", default=None)
+    parser.add_option("-e", "--end", dest="elen", help="count of characters to keep from right (end) of header string (initial '>' not included)", default=None)
     (options, args) = parser.parse_args(args)
 
     fail = False
@@ -57,8 +57,12 @@ if __name__=='__main__':
     fin = open(options.inp, 'r')
     fout = open(options.outp, 'w')
 
+    totlen = options.slen+options.elen
     def shrink_by_charcount(l):
-        return l[:options.slen]+l[-options.elen:]
+        if len(l)>totlen:
+            return l[:options.slen]+l[-options.elen:]
+        else:
+            return l
 
     rewrite_fasta(fin, fout, shrink_by_charcount)
 
