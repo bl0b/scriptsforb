@@ -14,6 +14,7 @@ def getopts(args):
     parser.add_option("--rc", "--refcol", dest="refcol", help="columns indices in reference file that should be appended to rows of the input file", default=None)
     parser.add_option("--ik", "--inputkey", dest="inkey", help="columns indices that define the cross-referencing key (input-side, defaults to refkey)", default=None)
     parser.add_option("-u", "--uniq", dest="uniq", action="store_true", help="only output the unique cross-referenced payload entries", default=False)
+    parser.add_option("-q", "--quiet", dest="quiet", action="store_true", help="don't output every little detail", default=False)
     (options, args) = parser.parse_args(args)
 
     fail = False
@@ -60,13 +61,14 @@ def uniq_init(I, R, payload):
 def uniq_add(xref, row, payload=Csv.Row([])):
     xref.add('\t'.join(payload))
 
-def do_xref(ref, inp, outp, refk, ink, payload, uniq):
+def do_xref(ref, inp, outp, refk, ink, payload, uniq, quiet):
     R = Csv(ref)
     I = Csv(inp)
     out = outp=='stdout' and sys.stdout or file(outp, 'w')
     blacklist = set(['seg', 'signal-peptide'])
     ridx = R.make_index(refk, payload, blacklist)
-    print "Using (%s) as cross-referencing key"%(','.join(R.headers[refk]))
+    if not quiet:
+        print "Using (%s) as cross-referencing key"%(','.join(R.headers[refk]))
     if uniq:
         xref = uniq_init(I, R, payload)
         add = uniq_add
@@ -82,15 +84,17 @@ def do_xref(ref, inp, outp, refk, ink, payload, uniq):
             #xref.append('\t'.join(row).strip())
             continue
         if key not in ridx:
-            print "No match for (%s)"%(','.join(key))
+            if not quiet:
+                print "No match for (%s)"%(','.join(key))
             nomatch.add(key)
             add(xref, row)
             #xref.append('\t'.join(row).strip())
             continue
         matches = ridx[row[ink]]
-        print len(matches), "match(es)"
+        if not quiet:
+            print len(matches), "match(es)"
         for m in matches:
-            add(xref, row, m[payload])
+            add(xref, row, m)
             #xref.append('\t'.join(row+m[payload]).strip())
     for x in xref:
         print >> out, x
@@ -98,5 +102,5 @@ def do_xref(ref, inp, outp, refk, ink, payload, uniq):
 
 if __name__=='__main__':
     options, args = getopts(sys.argv[1:])
-    do_xref(options.ref, options.inp, options.outp, options.refkey, options.inkey, options.refcol, options.uniq)
+    do_xref(options.ref, options.inp, options.outp, options.refkey, options.inkey, options.refcol, options.uniq, options.quiet)
 

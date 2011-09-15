@@ -1,4 +1,4 @@
-
+import sys
 
 class Csv(object):
     class Row(tuple):
@@ -6,7 +6,12 @@ class Csv(object):
             tuple.__init__(self, (x.strip() for x in a))
         def __getitem__(self, x):
             if type(x) in (tuple, list, set):
-                return Csv.Row((tuple.__getitem__(self, field) for field in x))
+                try:
+                    return Csv.Row((tuple.__getitem__(self, field) for field in x))
+                except IndexError, ie:
+                    print "Row is too short for ", x, ':', self
+                    print "Aborting."
+                    sys.exit(-1)
             else:
                 return tuple.__getitem__(self, x)
     def __init__(self, filename, sep='\t'):
