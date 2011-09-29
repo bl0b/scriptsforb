@@ -156,7 +156,7 @@ if __name__=='__main__':
     group = {} # group-name -> list of names
     for p in prefixes:
         groupof[p] = p
-        group[p] = set()
+        group[p] = set(p)
         for s in t.list_suffixes(p):
             groupof[s] = p
             group[p].add(s)
