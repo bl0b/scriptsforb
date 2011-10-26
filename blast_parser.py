@@ -63,7 +63,7 @@ def parse_file(f):
     for l in (type(f) is str and open(f) or f).xreadlines():
         if l.startswith('#'):
             for piece in (p.strip() for p in l.split('#') if len(p)>0):
-                if piece.startswith('BLAST'):
+                if piece.startswith('BLA'): # could be BLAT, BLASTN...
                     if edit is not None:
                         results.append(edit)
                     edit = result()
