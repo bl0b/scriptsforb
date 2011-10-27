@@ -16,21 +16,20 @@ def getopts(args):
 
     if len(args)!=1:
         print "You must specify exactly ONE input file"
-        fail=True
+        print
+        parser.parse_args(['-h'])
+        sys.exit(1)
+
     if options.field_list is not None:
         options.field_list = map(str.strip, options.field_list.split(","))
+
     if options.outp is None:
         ext_index = args[0].rfind('.')
         if ext_index==-1:
             options.outp = args[0]+'_results'
         else:
             options.outp = args[0][:ext_index]
-    if fail:
-        print
-        print "Errors were detected in command line. Aborting."
-        print
-        parser.parse_args(['-h'])
-        sys.exit(1)
+
     return options, args[0]
 
 
