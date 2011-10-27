@@ -44,18 +44,40 @@ class result(object):
         self.query = None
         self.fields = None
         self.database = None
+    def headers(self, field_list=None):
+        return '# '+self.version+'# Query: '+self.query+'\n# Database: '+self.database+'\n# Fields: '+', '.join(field_list or self.fields)
     def __str__(self):
-        return '# '+self.version+'# Query: '+self.query+'\n# Database: '+self.database+'\n# Fields: '+', '.join(self.fields)+'\n'+'\n'.join(('\t'.join(r) for r in self.data))
+        return self.headers()+'\n'+'\n'.join(('\t'.join(r) for r in self.data))
     def __repr__(self):
         return "<BLAST result (%s @ %s), %i rows>"%(self.query, self.database, len(self.data))
     class row(list):
         def __init__(self, fields, data):
             list.__init__(self, data)
             self.fields = dict((k, i) for i, k in enumerate(fields))
+            self.fields.update(dict((i, i) for i in xrange(len(fields))))
         def __call__(self, k):
             return self[self.fields[k]]
+        def format(self, fmt):
+            parts = [ x.split('}') for x in fmt.split('{') ]
+            ret = []
+            for p in parts:
+                if len(p)==2:
+                    ret.append(self(p[0]))
+                ret.append(p[-1])
+            return ''.join(ret)
     def add_row(self, data):
         self.data.append(result.row(self.fields, data))
+    def format(self, headers=False, fmt=None):
+        ret = headers and [self.headers(type(fmt) is list and fmt or None)] or []
+        if fmt is None:
+            fmt_row = lambda r: '\t'.join(r)
+        elif type(fmt) is list:
+            fmt_row = lambda r: '\t'.join((r(x) for x in fmt))
+        elif type(fmt) is str:
+            fmt_row = lambda r: r.format(fmt)
+        for r in self.data:
+            ret.append(fmt_row(r))
+        return '\n'.join(ret)
 
 def parse_file(f):
     results = []
