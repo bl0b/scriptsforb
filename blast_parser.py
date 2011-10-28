@@ -44,8 +44,21 @@ class result(object):
         self.query = None
         self.fields = None
         self.database = None
-    def headers(self, field_list=None):
-        return '# '+self.version+'# Query: '+self.query+'\n# Database: '+self.database+'\n# Fields: '+', '.join(field_list or self.fields)
+    def headers(self, reformat=None, field_list=None):
+        flst = ', '.join(field_list or self.fields)
+        if reformat is True:
+            return '# '+self.version+'# Query: '+self.query+'\n# Database: '+self.database+'\n# Fields: '+flst
+        elif type(reformat) is str:
+            hdr = { 'Version':self.version, 'Query':self.query, 'Database':self.database, 'Fields':flst }
+            parts = [ x.split('}') for x in reformat.split('{') ]
+            ret = []
+            for p in parts:
+                if len(p)==2:
+                    ret.append(hdr[p[0]])
+                ret.append(p[-1])
+            return ''.join(ret)
+        else:
+            return ""
     def __str__(self):
         return self.headers()+'\n'+'\n'.join(('\t'.join(r) for r in self.data))
     def __repr__(self):
@@ -68,7 +81,7 @@ class result(object):
     def add_row(self, data):
         self.data.append(result.row(self.fields, data))
     def format(self, headers=False, fmt=None):
-        ret = headers and [self.headers(type(fmt) is list and fmt or None)] or []
+        ret = [self.headers(reformat=headers or "", field_list=type(fmt) is list and fmt or None)]
         if fmt is None:
             fmt_row = lambda r: '\t'.join(r)
         elif type(fmt) is list:
