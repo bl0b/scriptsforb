@@ -21,7 +21,7 @@ class splitter(object):
         self.filename = filename
         self.output_len=self.slice_size
         self.output_index = 0
-        map(s.output_line, open(filename).xreadlines())
+        map(self.output_line, open(filename).xreadlines())
 
 
 def main():
