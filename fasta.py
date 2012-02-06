@@ -29,6 +29,11 @@ class Fasta(object):
     def __len__(self):
         return len(self.seq_list)
 
+    def __contains__(self, x):
+        return (type(x) is int and x < len(self.seq_list)
+                or
+                type(x) is str and x in self.seq_dic)
+
     def __iter__(self):
         return iter(self.seq_list)
 
@@ -66,3 +71,9 @@ class Fasta(object):
         f = open(filename, 'w')
         for s in self.seq_list:
             print >> f, s
+
+
+def read_from(filename):
+    ret = Fasta()
+    ret.read_from(filename)
+    return ret
