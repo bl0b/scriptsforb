@@ -40,16 +40,16 @@ class primer3(object):
     def add_line(self, l):
         try:
             if self.left is None:
-                print "left>", l
+                #print "left>", l
                 fields = LEFT_RE.match(l).groups()
                 self.num = int(fields[0])
                 self.left = dict(zip(lr_fields, match2type(fields[1:])))
             elif self.right is None:
-                print "right>", l
+                #print "right>", l
                 fields = RIGHT_RE.match(l).groups()
                 self.right = dict(zip(lr_fields, match2type(fields)))
             elif self.product_size is None:
-                print "misc>", l
+                #print "misc>", l
                 self.product_size, self.pair_any_compl, self.pair_3_compl = (
                     PRODUCT_SIZE_RE.match(l).groups())
             return self.product_size is not None
@@ -114,7 +114,7 @@ def primer_to_fasta(p, lr, pfields):
 
 if __name__ == '__main__':
     for inputfile in sys.argv[1:]:
-        inputfile = sys.argv[1]
+        print "processing", inputfile
         test = primer3_parse(inputfile)
         output = map(lambda p: primer_to_fasta(p, 'left', p.left)
                                + primer_to_fasta(p, 'right', p.right),
