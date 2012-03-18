@@ -9,12 +9,12 @@ from bs4 import BeautifulSoup as bs
 quit_skipping = "start  len      tm     gc%   any    3' seq"
 resume_skipping = "Statistics"
 
-fint_ = '[0-9] + '
+fint_ = '[0-9]+'
 fint = '(' + fint_ + ')'
 ffloat = '(' + fint_ + r'\.' + fint_ + ')'
 fspace = ' +'
 LR_COMMON = fspace.join([fint, fint, ffloat, ffloat, ffloat, ffloat,
-                         '([tcagACGT] + )'])
+                         '([tcagACGT]+) *'])
 LEFT_RE = re.compile(fint + ' +LEFT PRIMER +' + LR_COMMON)
 RIGHT_RE = re.compile('RIGHT PRIMER +' + LR_COMMON)
 PRODUCT_SIZE_RE = re.compile('PRODUCT SIZE: ' + fint + ', PAIR ANY COMPL: ' +
@@ -40,16 +40,16 @@ class primer3(object):
     def add_line(self, l):
         try:
             if self.left is None:
-                #print "left>", l
+                print "left>", l
                 fields = LEFT_RE.match(l).groups()
                 self.num = int(fields[0])
                 self.left = dict(zip(lr_fields, match2type(fields[1:])))
             elif self.right is None:
-                #print "right>", l
+                print "right>", l
                 fields = RIGHT_RE.match(l).groups()
                 self.right = dict(zip(lr_fields, match2type(fields)))
             elif self.product_size is None:
-                #print "misc>", l
+                print "misc>", l
                 self.product_size, self.pair_any_compl, self.pair_3_compl = (
                     PRODUCT_SIZE_RE.match(l).groups())
             return self.product_size is not None
