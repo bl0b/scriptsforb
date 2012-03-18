@@ -106,8 +106,8 @@ def primer3_parse(f):
 
 
 def primer_to_fasta(p, lr, pfields):
-    return ('>%i %s %i | product size: %s, pair any compl.: %s,'
-            + ' pair 3\' compl.: %s\n%s\n') % (
+    return ('>%i_%s_%i_|_product_size:_%s,_pair_any_compl.:_%s,'
+            + '_pair_3\'_compl.:_%s\n%s\n') % (
                 p.num, lr, pfields['start'], p.product_size, p.pair_any_compl,
                 p.pair_3_compl, pfields['seq'])
 
