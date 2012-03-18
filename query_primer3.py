@@ -4,6 +4,7 @@ import re
 import sys
 import urllib
 import urllib2
+import fasta
 
 
 # query http://frodo.wi.mit.edu/primer3/ from command-line
@@ -149,17 +150,17 @@ def init_query():
     m = (re.findall('select name="([^"]*)"()', buf) +
          re.findall('name="([^"]*)" value="([^"]*)"', buf) +
          re.findall('textarea name="([^"]*)"()', buf))
-    print m
+    #print m
     state = dict(m)
     post_url = (host +
                 re.compile('form action="([^"]*)"').search(buf).groups()[0])
-    print state
+    #print state
 
 
 def post_data():
     data = urllib.urlencode(state.items())
     req = urllib2.Request(post_url)
-    print req, data
+    #print req, data
     fd = urllib2.urlopen(req, data)
     buf = ""
     while True:
@@ -172,8 +173,13 @@ def post_data():
 
 def init_args(args):
     global new_state, behaviour
-    for i in xrange(1, len(args)):
-        if args[i] in ['-f', '--fast']:
+    i = 0
+    while i < len(args):
+        if args[i] in ['-i', '--input']:
+            f = fasta.read_from(args[i + 1])
+            i += 1
+            new_state['SEQUENCE'] = f[0].sequence
+        elif args[i] in ['-f', '--fast']:
             behaviour["fast"] = True
         elif args[i] in ['-o', '--output']:
             i += 1
@@ -199,18 +205,31 @@ def init_args(args):
             else:
                 print "I don't know nothing about a '%s', I do mean it." % key
                 sys.exit(1)
+        i += 1
 
 
 def update_state():
     state.update(new_state)
 
 
-if __name__ == '__main__':
-    init_args(sys.argv)
+def query_primer3(args):
+    global new_state, behaviour
+    new_state = {}
+    behaviour = {'fast': False, 'output': sys.stdout}
+    init_args(args)
     if not behaviour["fast"]:
         init_query()
-    #print state
     update_state()
-    #print post_url
     buf = post_data()
     print >> behaviour['output'], buf
+
+if __name__ == '__main__':
+    #init_args(sys.argv)
+    #if not behaviour["fast"]:
+    #    init_query()
+    ##print state
+    #update_state()
+    ##print post_url
+    #buf = post_data()
+    #print >> behaviour['output'], buf
+    query_primer3(sys.argv[1:])
