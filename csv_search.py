@@ -15,16 +15,30 @@ SE_grammar = """
     = STRING
     | WHATEVER
 
+colset
+    = _colset
+
+-_colset
+    = _colset COMMA colname
+    | colname
+
 -value
     = STRING
     | WHATEVER
 
+valueset
+    = _valueset
+
+-_valueset
+    = _valueset COMMA value
+    | value
+
 -where
     = p4
 
-p1  = colname EQ value
-    | colname MATCHES value
-    | colname CONTAINS value
+p1  = colset EQ valueset
+    | colset MATCHES valueset
+    | colset CONTAINS valueset
 
 -p1 = OPEN_PAR where CLOSE_PAR
 
@@ -45,32 +59,35 @@ class Predicate(object):
 
 class ColumnPredicate(Predicate):
 
-    def __init__(self, col, value):
-        self.col = col
-        self.value = value
+    def __init__(self, cols, values):
+        self.cols = cols
+        self.values = values
 
     def __call__(self, row):
-        return self.eval(row[self.col])
+        return reduce(bool.__or__,
+                      (reduce(lambda a, v: a or self.eval(c, v),
+                             self.values, False)
+                      for c in (row[i].lower() for i in self.cols)))
 
 
 class Eq(ColumnPredicate):
 
     def __init__(self, col, value):
         ColumnPredicate.__init__(self, col, value)
-        self.value = self.value.lower()
+        self.values = [v.lower() for v in self.values]
 
-    def eval(self, v):
-        return v.lower() == self.value
+    def eval(self, c, v):
+        return c == v
 
 
 class Contains(ColumnPredicate):
 
     def __init__(self, col, value):
         ColumnPredicate.__init__(self, col, value)
-        self.value = self.value.lower()
+        self.values = [v.lower() for v in self.values]
 
-    def eval(self, v):
-        return self.value in v.lower()
+    def eval(self, c, v):
+        return v in c
 
 
 class Matches(ColumnPredicate):
@@ -79,8 +96,8 @@ class Matches(ColumnPredicate):
         ColumnPredicate.__init__(self, col, value)
         self.value = re.compile(self.value, re.IGNORECASE)
 
-    def eval(self, v):
-        return self.value.match(v) is not None
+    def eval(self, c, v):
+        return v.match(c) is not None
 
 
 class BinaryPredicate(Predicate):
@@ -119,13 +136,14 @@ class SE_Parser(Automaton):
                              OR=r"\bor\b",
                              NOT=r"\bnot\b",
                              EQ="=",
+                             COMMA=",",
                              MATCHES=r"\bmatches\b",
                              CONTAINS=r"\bcontains\b",
                              OPEN_PAR="[(]",
                              CLOSE_PAR="[)]",
                              _whitespace=r"[ \r\n\t]+",
                             discard_names=["_whitespace"])
-        SE_scanner.add(WHATEVER=r"[^ \r\n\t=()]+")
+        SE_scanner.add(WHATEVER=r"[^ ,\r\n\t=()]+")
         Automaton.__init__(self, "where", SE_grammar, SE_scanner)
         if csv.headers:
             self.colnames = dict((k, v)
@@ -139,15 +157,23 @@ class SE_Parser(Automaton):
             'p1': self.p1,
             'p2': self.p2,
             'p3': self.p3,
-            'p4': self.p4
+            'p4': self.p4,
+            'colset': self.colset,
+            'valueset': self.valueset,
         }
+
+    def colset(self, ast):
+        return tuple(self.colnames[a[1]] for a in ast[1::2])
+
+    def valueset(self, ast):
+        return tuple(a[1] for a in ast[1::2])
 
     def p1(self, ast):
         op = {'EQ': Eq,
               'MATCHES': Matches,
               'CONTAINS': Contains
              }[ast[2][0]]
-        return op(self.colnames[ast[1][1]], ast[3][1])
+        return op(ast[1], ast[3])
 
     def p2(self, ast):
         return Not(ast[2])
