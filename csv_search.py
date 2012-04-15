@@ -5,6 +5,7 @@ from csv_parser import Csv
 import sys
 import re
 from jupyLR import Scanner, Automaton
+from optparse import OptionParser
 
 
 #
@@ -24,6 +25,8 @@ SE_grammar = """
 p1  = colname EQ value
     | colname MATCHES value
     | colname CONTAINS value
+
+-p1 = OPEN_PAR where CLOSE_PAR
 
 -p2 = p1
 p2  = NOT p2
@@ -52,21 +55,29 @@ class ColumnPredicate(Predicate):
 
 class Eq(ColumnPredicate):
 
+    def __init__(self, col, value):
+        ColumnPredicate.__init__(self, col, value)
+        self.value = self.value.lower()
+
     def eval(self, v):
-        return v == self.value
+        return v.lower() == self.value
 
 
 class Contains(ColumnPredicate):
 
+    def __init__(self, col, value):
+        ColumnPredicate.__init__(self, col, value)
+        self.value = self.value.lower()
+
     def eval(self, v):
-        return self.value in v
+        return self.value in v.lower()
 
 
 class Matches(ColumnPredicate):
 
     def __init__(self, col, value):
         ColumnPredicate.__init__(self, col, value)
-        self.value = re.compile(self.value)
+        self.value = re.compile(self.value, re.IGNORECASE)
 
     def eval(self, v):
         return self.value.match(v) is not None
@@ -110,13 +121,20 @@ class SE_Parser(Automaton):
                              EQ="=",
                              MATCHES=r"\bmatches\b",
                              CONTAINS=r"\bcontains\b",
+                             OPEN_PAR="[(]",
+                             CLOSE_PAR="[)]",
                              _whitespace=r"[ \r\n\t]+",
                             discard_names=["_whitespace"])
-        SE_scanner.add(WHATEVER=r"[^ \r\n\t=]+")
+        SE_scanner.add(WHATEVER=r"[^ \r\n\t=()]+")
         Automaton.__init__(self, "where", SE_grammar, SE_scanner)
-        self.colnames = dict((k, v)
-                             for v in xrange(len(csv.headers))
-                             for k in (v, str(v), csv.headers[v]))
+        if csv.headers:
+            self.colnames = dict((k, v)
+                                 for v in xrange(len(csv.headers))
+                                 for k in (v + 1, str(v + 1), csv.headers[v]))
+        else:
+            self.colnames = dict((k, i)
+                                 for i in xrange(len(csv.data[0]))
+                                 for k in (str(i + 1), i + 1))
         self.val = {
             'p1': self.p1,
             'p2': self.p2,
@@ -151,7 +169,19 @@ def search_csv(csv, query):
 
 
 if __name__ == '__main__':
-    for i in xrange(1, len(sys.argv), 2):
-        csv = Csv(sys.argv[i])
-        for row in search_csv(csv, sys.argv[i + 1]):
+    op = OptionParser()
+    op.add_option("-s", "--separator", dest="sep",
+                  help="CSV separator (default: tab)", default="\t")
+    op.add_option("-n", "--no-header", dest="nh", action="store_true",
+                  default=False, help="Don't use first row as column names")
+
+    op.usage += ' [<CSV file> "query"]...'
+
+    opts, args = op.parse_args(sys.argv[1:])
+
+    for i in xrange(0, len(args), 2):
+        csv = Csv(args[i], sep=opts.sep, headers=not opts.nh)
+        if csv.headers:
+            print op.sep
+        for row in search_csv(csv, args[i + 1]):
             print "\t".join('"' + str(v) + '"' for v in row)
