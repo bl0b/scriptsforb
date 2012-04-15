@@ -177,6 +177,30 @@ if __name__ == '__main__':
 
     op.usage += ' [<CSV file> "query"]...'
 
+    op.usage += """
+
+Where query is a predicate on one or more columns in the CSV.
+A column name is either its number (starting from 1) and/or the value in this
+column in the first row if the -n option was not specified.
+A value is anything. Use double quotes to enclose values containing spaces.
+
+Column predicates are case-insensitive.
+
+Column predicates are :
+    COLNAME contains VALUE          the string VALUE appears anywhere inside
+                                    the column value.
+    COLNAME = VALUE                 the column value is exactly VALUE.
+    COLNAME matches VALUE           VALUE is a regular expression and the
+                                    value in the column matches it.
+
+Combinations are (A and B are any column predicate or any predicate already
+mentioned):
+    ( predicate )                   sub-expression grouping
+    not A                           true if A evaluates to false
+    A and B                         true if A and B both evaluate to true
+    A or B                          true if any of A or B evaluate to true
+"""
+
     opts, args = op.parse_args(sys.argv[1:])
 
     for i in xrange(0, len(args), 2):
