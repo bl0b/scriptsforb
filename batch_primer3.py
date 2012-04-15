@@ -6,6 +6,8 @@ import sys
 import re
 import os
 
+executable = True
+
 if len(sys.argv) < 2:
     print "Usage: %s multi_fasta PRIMER3_ARG=VALUE..."
 
