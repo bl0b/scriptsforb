@@ -1,5 +1,9 @@
 import sys
 
+"""Module to parse CSV files"""
+
+executable = False
+
 
 def parse_csv(filename, sep=','):
     f = open(filename)
