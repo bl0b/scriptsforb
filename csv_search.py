@@ -206,6 +206,6 @@ mentioned):
     for i in xrange(0, len(args), 2):
         csv = Csv(args[i], sep=opts.sep, headers=not opts.nh)
         if csv.headers:
-            print op.sep
+            print opts.sep.join(csv.headers)
         for row in search_csv(csv, args[i + 1]):
             print "\t".join('"' + str(v) + '"' for v in row)
