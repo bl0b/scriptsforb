@@ -10,11 +10,13 @@ ftotal = 0
 def extract(filename):
     global fcount, ftotal
     fcount += 1
-    print "\r%i/%i" % (fcount, ftotal),
+    #print "\r%i/%i" % (fcount, ftotal),
+    print "%i/%i" % (fcount, ftotal),
     exti = filename.rfind('.')
     ext = filename[exti:]
     path, query = os.path.split(filename[:exti])
     fhits = fasta.read_from(filename)
+    print filename, exti, ext, path, query
     if query in fhits:
         fquery = fasta.Fasta()
         fquery.add_seq(fhits[query])
