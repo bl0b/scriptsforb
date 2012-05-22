@@ -32,6 +32,8 @@ def parse_gff2(gff_file):
             X = l.split('\t')
             if len(X) == 8:  # no group
                 X.append("")
+            group = '\t'.join(X[8:])
+            X = X[:8] + [group]
             #print X
             predfeatures.append(Feature(*X))
     return predfeatures
