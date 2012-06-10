@@ -54,9 +54,13 @@ if __name__ == '__main__':
     else:
         gff = parse_gff3.parse_gff3(o.gff3)
 
-    l = [fasta.Sequence(
-            g.reference_sequence + ' ' + g.start + ' ' + g.stop
-            + ' ' + g.strand,
-            fas[g.reference_sequence].sequence[int(g.start) - 1:int(g.stop)])
+    try:
+        l = [fasta.Sequence(
+                g.reference_sequence + ' ' + g.start + ' ' + g.stop
+                + ' ' + g.strand,
+                fas[g.reference_sequence].sequence[int(g.start)
+                                                   - 1:int(g.stop)])
          for g in gff]
-    print >> o.output, '\n'.join(imap(str, l))
+        print >> o.output, '\n'.join(imap(str, l))
+    except KeyError, ke:
+        print "Sequence was not found in fasta file :", str(ke)

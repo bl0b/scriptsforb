@@ -1,12 +1,12 @@
 class PredictedRegion(object):
 
-    def __init__(self, sequence_name, source, feature, start, stop, score,
+    def __init__(self, reference_sequence, source, feature, start, stop, score,
                  strand, frame, attributes):
         self.ID = None
         self.Parent = None
         for attstr in attributes.split(';'):
             setattr(self, *attstr.split("="))
-        self.sequence_name = sequence_name
+        self.reference_sequence = reference_sequence
         self.source = source
         self.feature = feature
         self.start = start
@@ -21,7 +21,7 @@ class PredictedRegion(object):
             attrs.append('ID=' + self.ID)
         if self.Parent:
             attrs.append('Parent=' + self.Parent)
-        return '\t'.join([self.sequence_name, self.source, self.feature,
+        return '\t'.join([self.reference_sequence, self.source, self.feature,
                           self.start, self.stop, self.score, self.strand,
                           self.frame, ';'.join(attrs)])
 
@@ -77,5 +77,8 @@ def parse_gff3(filename):
                     mode = 'protein'
                     curgene.protein_seq = l[len(PROTEIN):]
         else:
+            if curgene is None:
+                curgene = PredictedGene("")
+                predgenes.append(curgene)
             curgene.append(PredictedRegion(*l.split('\t')))
-    return predgenes
+    return len(predgenes) == 1 and predgenes[0] or predgenes

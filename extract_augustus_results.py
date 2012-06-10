@@ -19,7 +19,7 @@ g = parse_gff3(sys.argv[1])
 for seq, outf in (('protein_seq', outprot), ('coding_seq', outdna)):
     f = fasta.Fasta()
     for x in g:
-        f.add_seq(fasta.Sequence(x.name + ' ' + x[0].sequence_name,
+        f.add_seq(fasta.Sequence(x.name + ' ' + x[0].reference_sequence,
                                  getattr(x, seq)))
     f.save_to(outf)
 
