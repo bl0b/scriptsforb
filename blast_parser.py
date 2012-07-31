@@ -78,9 +78,10 @@ class result(object):
                 '\n'.join(('\t'.join(r) for r in self.data)))
 
     def __repr__(self):
-        return "<BLAST result (%s @ %s), %i rows>" % (self.query,
-                                                      self.database,
-                                                      len(self.data))
+        return "<%s result (%s @ %s), %i rows>" % (self.version,
+                                                   self.query,
+                                                   self.database,
+                                                   len(self.data))
 
     class row(list):
         def __init__(self, fields, data):
@@ -123,7 +124,10 @@ def parse_file(f):
     for l in (type(f) is str and open(f) or f).xreadlines():
         if l.startswith('#'):
             for piece in (p.strip() for p in l.split('#') if len(p) > 0):
-                if piece.startswith('BLA'):  # could be BLAT, BLASTN...
+                first = piece.split(' ')[0].lower()
+                #if piece.startswith('BLA'):  # could be BLAT, BLASTN...
+                if first in ('blast', 'blastx', 'blastn', 'blastp', 'blastpgp',
+                             'tblast', 'tblastx', 'tblastn', 'megablast'):
                     if edit is not None:
                         results.append(edit)
                     edit = result()
