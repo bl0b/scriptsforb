@@ -127,7 +127,8 @@ def parse_file(f):
                 first = piece.split(' ')[0].lower()
                 #if piece.startswith('BLA'):  # could be BLAT, BLASTN...
                 if first in ('blast', 'blastx', 'blastn', 'blastp', 'blastpgp',
-                             'tblast', 'tblastx', 'tblastn', 'megablast'):
+                             'tblast', 'tblastx', 'tblastn', 'megablast',
+                             'blat'):
                     if edit is not None:
                         results.append(edit)
                     edit = result()
