@@ -91,13 +91,23 @@ class Query(object):
             return l
 
         self.raw_query = nextline().strip()
+        q = self.raw_query[7:].split('PREDICTED: ')
+        self.Query = q[0].strip()
+        self.Predicted = len(q) > 1 and q[1].strip() or None
         self.raw_target = nextline().strip()
+        t = self.raw_target[8:].split('Average coverage: ')
+        self.Target = t[0].strip()
+        self.AverageCoverage = len(t) > 1 and t[1].strip() or None
         self.raw_model = nextline().strip()
+        self.Model = self.raw_model[7:]
         self.raw_raw_score = nextline().strip()
+        self.RawScore = int(self.raw_raw_score[11:])
         self.raw_query_range = nextline().strip()
+        self.QueryRange = self.raw_query_range.split(':')[1].split(' -> ')
+        self.QueryRange = map(int, self.QueryRange)
         self.raw_target_range = nextline().strip()
-        self.target_range = self.raw_target_range.split(':')[1].split(' -> ')
-        self.target_range = map(int, self.target_range)
+        self.TargetRange = self.raw_target_range.split(':')[1].split(' -> ')
+        self.TargetRange = map(int, self.TargetRange)
 
         self.query_prot = ""
         self.target_prot = ""
@@ -145,9 +155,8 @@ class Query(object):
         #print "0123456789" * 8
         #print int(s[2].strip()), self.target_range[1]
         a = int(s[2].strip())
-        b = self.target_range[1]
+        b = self.TargetRange[1]
         return a != b and a != b + 1
-        #return int(s[2].strip()) != self.target_range[1] + 1
 
 
 class Exonerate(object):
