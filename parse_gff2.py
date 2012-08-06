@@ -26,7 +26,7 @@ def parse_gff2(gff_file):
     if type(gff_file) is str:
         gff_file = open(gff_file)
 
-    for l in gff_file.xreadlines():
+    for l in gff_file:  # .xreadlines():
         l = l.strip()
         if not l.startswith('#'):
             X = l.split('\t')
