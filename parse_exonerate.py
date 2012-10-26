@@ -1,5 +1,6 @@
 from parse_gff2 import parse_gff2
 import re
+from itertools import izip
 
 START_GFF = "# --- START OF GFF DUMP ---"
 END_GFF = "# --- END OF GFF DUMP ---"
@@ -126,6 +127,17 @@ class Query(object):
         while self.state[i](nextline()):
             i = (i + 1) % len(self.state)
             #print i
+
+    def iterate(self,
+                pred_qp=lambda x: True,
+                pred_tp=lambda x: True,
+                pred_ts=lambda x: True,
+                pred_a=lambda x: True):
+        return ((qp, tp, ts, a)
+                for qp, tp, ts, a in izip(self.query_prot, self.target_prot,
+                                          self.target_seq, self.alignment)
+                if pred_qp(qp) and pred_tp(tp)
+                   and pred_ts(ts) and pred_a(a))
 
     def _rd_blank(self, l):
         return True
