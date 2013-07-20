@@ -151,12 +151,12 @@ class Query(object):
 
     def _rd_al(self, l):
         #print "read alignment", l.strip()
-        self.alignment += l[8:]
+        self.alignment += l[8:-1]
         return True
 
     def _rd_tgt(self, l):
         #print "read target", l.strip()
-        self.target_prot += l[8:]
+        self.target_prot += l[8:-1]
         return True
 
     def _rd_dna(self, l):
